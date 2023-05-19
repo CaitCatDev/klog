@@ -4,16 +4,21 @@
 #include <string.h>
 
 #include "klog.h"
-#include "klogbool.h"
 
 typedef struct _klog_cfg_s {
 	uint8_t level;
 	bool silent;
+	const char *progname;
 
 	FILE *file;
 } klog_cfg_t;
 
-static klog_cfg_t klog_cfg = { 0 };
+static klog_cfg_t klog_cfg = {
+	KLOG_WARN,
+	0,
+	"klog",
+	NULL
+};
 
 void klog_set_silent(bool silent) {
 	klog_cfg.silent = silent;
@@ -30,6 +35,10 @@ void klog_set_file(FILE *file) {
 int klog_file_init(const char *path) {
 	klog_cfg.file = fopen(path, "w");
 	return klog_cfg.file == NULL;
+}
+
+void klog_progname_init(const char *name) {
+	klog_cfg.progname = name;
 }
 
 int klog_file_close(void) {
@@ -88,10 +97,11 @@ int klog(int level, int line, const char *func, char *fmt, ...) {
 	}
 
 	va_start(args, fmt);
-	
-	ret = fprintf(stderr, "%s%5s %s(%d):\033[0m ", klog_level_colour(level), klog_level_str(level), func, line);
+
+	ret = fprintf(stderr, "%s%s %5s %s(%d):\033[0m ", klog_level_colour(level),
+				klog_cfg.progname, klog_level_str(level), func, line);
 	ret += vfprintf(stderr, fmt, args);
-	
+
 	if(klog_cfg.file) {
 		fprintf(stderr, "%d %d %s: ", level, line, func);
 		vfprintf(stderr, fmt, args);

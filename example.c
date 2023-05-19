@@ -1,4 +1,6 @@
+#define KLOG_MODULE "Example"
 #include "klog.h"
+
 
 int main(void) {
 	klog(KLOG_MEMINFO, __LINE__, __FUNCTION__, "Hello World\n%s", "From Cat\n");
